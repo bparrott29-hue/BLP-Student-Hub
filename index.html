@@ -1,122 +1,101 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BLP Student Hub</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BLP Student Hub</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <div class="logo">BLP</div>
-      <h1>BLP Student Hub</h1>
-      <p class="subtitle">Your student dashboard</p>
-
-      <div class="tabs">
-        <button id="loginTab" class="tab active">Login</button>
-        <button id="signupTab" class="tab">Create Account</button>
-      </div>
-
-      <form id="authForm">
-        <label>Email</label>
-        <input id="email" type="email" placeholder="student@example.com" required>
-        <label>Password</label>
-        <input id="password" type="password" placeholder="Password" required minlength="6">
-        <button class="primary" type="submit" id="authButton">Login</button>
-        <p id="authMessage" class="message"></p>
-      </form>
+<div id="auth" class="screen">
+  <div class="auth-card">
+    <div class="logo">BLP</div>
+    <h1>BLP Student Hub</h1>
+    <p class="sub">Student dashboard</p>
+    <div class="tabs">
+      <button type="button" id="loginTab" class="tab active">Login</button>
+      <button type="button" id="signupTab" class="tab">Create Account</button>
     </div>
-  </div>
 
-  <div id="appScreen" class="hidden">
-    <header>
-      <div class="brand"><span>BLP</span> Student Hub</div>
-      <div class="header-right">
-        <span id="userEmail"></span>
-        <button id="logoutButton" class="logout">Log out</button>
+    <form id="authForm">
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="new-password" minlength="6" required>
+      <button type="submit" id="authSubmit" class="primary">Login</button>
+    </form>
+    <p id="authMessage" class="message"></p>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+<header>
+  <div class="brand"><span>BLP</span> Student Hub</div>
+  <div class="user"><span id="who"></span><button type="button" id="logout" class="outline">Log out</button></div>
+</header>
+<div class="layout">
+  <nav>
+    <button type="button" class="nav active" data-page="home">🏠 Dashboard</button>
+    <button type="button" class="nav" data-page="assignments">📝 Assignments</button>
+    <button type="button" class="nav" data-page="grades">📊 Grades</button>
+    <button type="button" class="nav" data-page="calendar">📅 Calendar</button>
+    <button type="button" class="nav" data-page="sheet">📋 Spreadsheet</button>
+  </nav>
+  <main>
+    <section id="home" class="page">
+      <h2>Welcome!</h2><p class="muted">Your school information in one place.</p>
+      <div class="cards">
+        <div class="card"><h3>Assignments</h3><b id="total">0</b><span>total</span></div>
+        <div class="card"><h3>Completed</h3><b id="done">0</b><span>finished</span></div>
+        <div class="card"><h3>Account</h3><b>✓</b><span id="account"></span></div>
       </div>
-    </header>
+      <div class="panel">
+        <h3>Quick Add</h3>
+        <div class="row">
+          <input id="quickName" placeholder="Assignment name">
+          <input id="quickDate" type="date">
+          <button type="button" id="quickAdd" class="primary">Add</button>
+        </div>
+      </div>
+    </section>
 
-    <div class="layout">
-      <aside>
-        <button class="nav active" data-page="dashboard">🏠 Dashboard</button>
-        <button class="nav" data-page="assignments">📝 Assignments</button>
-        <button class="nav" data-page="calendar">📅 Calendar</button>
-        <button class="nav" data-page="grades">📊 Grades</button>
-        <button class="nav" data-page="spreadsheet">📋 Student Spreadsheet</button>
-      </aside>
+    <section id="assignments" class="page hidden">
+      <h2>Assignments</h2>
+      <div class="panel"><div class="row">
+        <input id="aName" placeholder="Assignment name">
+        <input id="aDate" type="date">
+        <button type="button" id="addA" class="primary">Add Assignment</button>
+      </div></div>
+      <div id="assignmentList"></div>
+    </section>
 
-      <main>
-        <section id="dashboard" class="page">
-          <h2>Welcome to BLP Student Hub</h2>
-          <p class="muted">Everything you need for school, in one place.</p>
-          <div class="cards">
-            <div class="card"><h3>Assignments</h3><strong id="assignmentCount">0</strong><p>items to keep track of</p></div>
-            <div class="card"><h3>Completed</h3><strong id="completedCount">0</strong><p>assignments completed</p></div>
-            <div class="card"><h3>My Account</h3><strong>✓</strong><p id="accountText"></p></div>
-          </div>
-          <div class="panel">
-            <h3>Quick Add Assignment</h3>
-            <div class="row">
-              <input id="quickAssignment" placeholder="Assignment name">
-              <input id="quickDue" type="date">
-              <button class="primary" id="quickAdd">Add</button>
-            </div>
-          </div>
-        </section>
+    <section id="grades" class="page hidden">
+      <h2>Grades</h2>
+      <div class="panel"><div class="row">
+        <input id="gClass" placeholder="Class">
+        <input id="gValue" placeholder="Grade">
+        <button type="button" id="addG" class="primary">Add Grade</button>
+      </div><div id="gradeList"></div></div>
+    </section>
 
-        <section id="assignments" class="page hidden">
-          <h2>Assignments</h2>
-          <div class="panel">
-            <div class="row">
-              <input id="assignmentName" placeholder="Assignment name">
-              <input id="assignmentDue" type="date">
-              <button class="primary" id="addAssignment">Add Assignment</button>
-            </div>
-          </div>
-          <div id="assignmentList"></div>
-        </section>
+    <section id="calendar" class="page hidden">
+      <h2>Calendar</h2>
+      <div class="panel"><div id="calendarList"></div></div>
+    </section>
 
-        <section id="calendar" class="page hidden">
-          <h2>Calendar</h2>
-          <div class="panel">
-            <p>Your assignment due dates appear here.</p>
-            <div id="calendarList"></div>
-          </div>
-        </section>
-
-        <section id="grades" class="page hidden">
-          <h2>Grades</h2>
-          <div class="panel">
-            <p class="muted">Add your classes and grades below. This information is saved to your account on this device.</p>
-            <div class="row">
-              <input id="className" placeholder="Class">
-              <input id="gradeValue" placeholder="Grade (e.g. A or 92%)">
-              <button class="primary" id="addGrade">Add</button>
-            </div>
-            <div id="gradeList"></div>
-          </div>
-        </section>
-
-        <section id="spreadsheet" class="page hidden">
-          <h2>Student Spreadsheet</h2>
-          <div class="panel">
-            <div class="row">
-              <input id="sheetSubject" placeholder="Subject">
-              <input id="sheetNote" placeholder="Note">
-              <button class="primary" id="addSheetRow">Add Row</button>
-            </div>
-            <table>
-              <thead><tr><th>Subject</th><th>Note</th><th></th></tr></thead>
-              <tbody id="sheetBody"></tbody>
-            </table>
-          </div>
-        </section>
-      </main>
-    </div>
-  </div>
-
-  <script src="app.js"></script>
+    <section id="sheet" class="page hidden">
+      <h2>Student Spreadsheet</h2>
+      <div class="panel"><div class="row">
+        <input id="sSubject" placeholder="Subject">
+        <input id="sNote" placeholder="Note">
+        <button type="button" id="addS" class="primary">Add Row</button>
+      </div>
+      <table><thead><tr><th>Subject</th><th>Note</th><th></th></tr></thead><tbody id="sheetBody"></tbody></table>
+      </div>
+    </section>
+  </main>
+</div>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
