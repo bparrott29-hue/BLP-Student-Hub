@@ -461,10 +461,19 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
         "Welcome to your BLP Student Hub dashboard.";
     }
 
-    if ($("roleBadge")) {
-      $("roleBadge").textContent =
-        String(currentProfile?.role || "student")
-          .toUpperCase();
+  if ($("roleBadge")) {
+  const role = currentProfile?.role;
+
+  if (role === "student") {
+    $("roleBadge").textContent = "Student";
+  } else if (role === "teacher") {
+    $("roleBadge").textContent = "Teacher";
+  } else if (role === "admin") {
+    $("roleBadge").textContent = "Admin";
+  } else {
+    $("roleBadge").textContent = "User";
+  }
+}
     }
 
     // Student
