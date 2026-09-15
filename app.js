@@ -56,6 +56,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
 
   let currentUser = null;
   let currentProfile = null;
+  let onlineChannel = null;
 
   let authMode = "login";
   let loginRole = "student";
@@ -461,20 +462,21 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
         "Welcome to your BLP Student Hub dashboard.";
     }
 
-  if ($("roleBadge")) {
-  const role = currentProfile?.role;
+    if ($("roleBadge")) {
+      const role = currentProfile?.role;
 
-  if (role === "student") {
-    $("roleBadge").textContent = "Student";
-  } else if (role === "teacher") {
-    $("roleBadge").textContent = "Teacher";
-  } else if (role === "admin") {
-    $("roleBadge").textContent = "Admin";
-  } else {
-    $("roleBadge").textContent = "User";
-  }
-}
+      if (role === "student") {
+        $("roleBadge").textContent = "Student";
+      } else if (role === "teacher") {
+        $("roleBadge").textContent = "Teacher";
+      } else if (role === "admin") {
+        $("roleBadge").textContent = "Admin";
+      } else {
+        $("roleBadge").textContent = "User";
+      }
     }
+
+    await startOnlinePresence();
 
     // Student
     if (currentProfile?.role === "student") {
@@ -512,11 +514,140 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
   }
 
   // ============================================================
+  // ONLINE MEMBERS / DISCORD-STYLE PRESENCE
+  // ============================================================
+
+  function renderOnlineMembers() {
+    const groups = {
+      admin: $("onlineAdmins"),
+      teacher: $("onlineTeachers"),
+      student: $("onlineStudents")
+    };
+
+    Object.values(groups).forEach((list) => {
+      if (list) list.innerHTML = "";
+    });
+
+    if (!onlineChannel) return;
+
+    const state = onlineChannel.presenceState();
+    const members = [];
+
+    Object.entries(state).forEach(([key, presences]) => {
+      const latest = Array.isArray(presences) ? presences[presences.length - 1] : null;
+      if (!latest) return;
+
+      const role = String(latest.role || "student").toLowerCase();
+      if (!groups[role]) return;
+
+      members.push({
+        id: key,
+        username: latest.username || "User",
+        role
+      });
+    });
+
+    const order = { admin: 0, teacher: 1, student: 2 };
+    members.sort((a, b) => {
+      const roleOrder = order[a.role] - order[b.role];
+      if (roleOrder !== 0) return roleOrder;
+      return a.username.localeCompare(b.username);
+    });
+
+    members.forEach((member) => {
+      const list = groups[member.role];
+      if (!list) return;
+
+      const item = document.createElement("div");
+      item.className = "online-member";
+      item.innerHTML = `
+        <span class="online-dot" aria-hidden="true"></span>
+        <span class="online-name">${escapeHTML(member.username)}</span>
+      `;
+
+      if (currentUser && member.id === currentUser.id) {
+        item.classList.add("online-self");
+      }
+
+      list.appendChild(item);
+    });
+
+    Object.entries(groups).forEach(([role, list]) => {
+      if (!list) return;
+      if (!list.children.length) {
+        const empty = document.createElement("div");
+        empty.className = "online-empty";
+        empty.textContent = "No one online";
+        list.appendChild(empty);
+      }
+    });
+
+    const counts = {
+      admin: members.filter((m) => m.role === "admin").length,
+      teacher: members.filter((m) => m.role === "teacher").length,
+      student: members.filter((m) => m.role === "student").length
+    };
+
+    if ($("onlineAdminCount")) $("onlineAdminCount").textContent = counts.admin;
+    if ($("onlineTeacherCount")) $("onlineTeacherCount").textContent = counts.teacher;
+    if ($("onlineStudentCount")) $("onlineStudentCount").textContent = counts.student;
+    if ($("onlineTotal")) $("onlineTotal").textContent = members.length;
+    if ($("onlineTotalHeader")) $("onlineTotalHeader").textContent = members.length;
+  }
+
+  async function startOnlinePresence() {
+    if (!currentUser || !currentProfile) return;
+
+    await stopOnlinePresence();
+
+    onlineChannel = supabaseClient.channel("blp-student-hub-online", {
+      config: {
+        presence: {
+          key: currentUser.id
+        }
+      }
+    });
+
+    onlineChannel
+      .on("presence", { event: "sync" }, renderOnlineMembers)
+      .on("presence", { event: "join" }, renderOnlineMembers)
+      .on("presence", { event: "leave" }, renderOnlineMembers);
+
+    onlineChannel.subscribe(async (status) => {
+      if (status === "SUBSCRIBED") {
+        await onlineChannel.track({
+          username: currentProfile.username || currentUser.email || "User",
+          role: currentProfile.role || "student"
+        });
+      }
+    });
+  }
+
+  async function stopOnlinePresence() {
+    if (!onlineChannel) return;
+
+    try {
+      await onlineChannel.untrack();
+    } catch (error) {
+      console.warn("Presence untrack warning:", error);
+    }
+
+    try {
+      await supabaseClient.removeChannel(onlineChannel);
+    } catch (error) {
+      console.warn("Presence channel warning:", error);
+    }
+
+    onlineChannel = null;
+  }
+
+  // ============================================================
   // LOGOUT
   // ============================================================
 
   function setupLogout() {
     $("logout")?.addEventListener("click", async () => {
+      await stopOnlinePresence();
       await supabaseClient.auth.signOut();
 
       currentUser = null;
@@ -1092,6 +1223,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
     supabaseClient.auth.onAuthStateChange(
       async (event, session) => {
         if (event === "SIGNED_OUT") {
+          await stopOnlinePresence();
           currentUser = null;
           currentProfile = null;
 
