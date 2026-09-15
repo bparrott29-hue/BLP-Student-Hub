@@ -1,1222 +1,1132 @@
-(() => {// ============================================================
-// BLP STUDENT HUB - SUPABASE APP.JS
-// ============================================================
+(() => {
+  "use strict";
 
-// ---------- SUPABASE CONNECTION ----------
+  // ============================================================
+  // BLP STUDENT HUB
+  // ============================================================
+
+  // PUT YOUR SUPABASE INFORMATION HERE
 const SUPABASE_URL = "https://wukwyjtbxqpthbwqhsmg.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt";
 
-const supabase = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_PUBLISHABLE_KEY
-);
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
 
+  // ============================================================
+  // HELPERS
+  // ============================================================
 
-// ============================================================
-// HELPERS
-// ============================================================
+  const $ = (id) => document.getElementById(id);
 
-const $ = (id) => document.getElementById(id);
-
-function show(element) {
-  if (element) element.style.display = "";
-}
-
-function hide(element) {
-  if (element) element.style.display = "none";
-}
-
-function setText(id, text) {
-  const element = $(id);
-  if (element) element.textContent = text;
-}
-
-function setMessage(message, error = false) {
-  const element = $("authMessage");
-
-  if (!element) return;
-
-  element.textContent = message || "";
-  element.style.color = error ? "#dc2626" : "";
-}
-
-function escapeHTML(value) {
-  return String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-
-// ============================================================
-// APP STATE
-// ============================================================
-
-let currentUser = null;
-let currentProfile = null;
-
-let authMode = "login";
-let selectedMode = "student";
-
-
-// ============================================================
-// AUTH BUTTONS
-// ============================================================
-
-function setupAuthButtons() {
-
-  // LOGIN BUTTON
-  $("loginTab")?.addEventListener("click", () => {
-
-    authMode = "login";
-
-    $("loginTab").className = "primary";
-    $("signupTab").className = "secondary";
-    $("adminLoginTab")?.classList.remove("primary");
-
-    if ($("adminLoginTab")) {
-      $("adminLoginTab").className = "secondary";
+  function show(element) {
+    if (element) {
+      element.style.display = "";
     }
+  }
 
-    show($("studentMode"));
-    show($("teacherMode"));
-
-    if ($("authSubmit")) {
-      $("authSubmit").textContent = "Login";
+  function hide(element) {
+    if (element) {
+      element.style.display = "none";
     }
+  }
 
-    setMessage("");
-  });
+  function message(text, error = false) {
+    const box = $("authMessage");
 
+    if (!box) return;
 
-  // CREATE ACCOUNT BUTTON
-  $("signupTab")?.addEventListener("click", () => {
+    box.textContent = text || "";
+    box.style.color = error ? "#dc2626" : "#475569";
+  }
 
-    authMode = "signup";
-    selectedMode = "student";
+  function escapeHTML(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
 
-    $("signupTab").className = "primary";
-    $("loginTab").className = "secondary";
+  // ============================================================
+  // STATE
+  // ============================================================
 
-    if ($("adminLoginTab")) {
-      $("adminLoginTab").className = "secondary";
-    }
+  let currentUser = null;
+  let currentProfile = null;
 
-    show($("studentMode"));
-    show($("teacherMode"));
+  let authMode = "login";
+  let loginRole = "student";
 
-    if ($("authSubmit")) {
-      $("authSubmit").textContent = "Create Account";
-    }
+  // ============================================================
+  // AUTH PAGE
+  // ============================================================
 
-    setMessage("");
-  });
+  function updateAuthPage() {
+    const loginTab = $("loginTab");
+    const signupTab = $("signupTab");
+    const adminTab = $("adminLoginTab");
 
+    const studentButton = $("studentMode");
+    const teacherButton = $("teacherMode");
 
-  // ADMINISTRATOR LOGIN BUTTON
-  $("adminLoginTab")?.addEventListener("click", () => {
+    const usernameField = $("usernameField");
+    const submitButton = $("authSubmit");
 
-    authMode = "admin-login";
-    selectedMode = "admin";
+    // ----------------------------------------------------------
+    // ADMIN LOGIN
+    // ----------------------------------------------------------
 
-    $("loginTab").className = "secondary";
-    $("signupTab").className = "secondary";
-    $("adminLoginTab").className = "primary";
+    if (authMode === "admin-login") {
+      if (loginTab) loginTab.className = "secondary";
+      if (signupTab) signupTab.className = "secondary";
+      if (adminTab) adminTab.className = "primary";
 
-    hide($("studentMode"));
-    hide($("teacherMode"));
+      hide(studentButton);
+      hide(teacherButton);
+      hide(usernameField);
 
-    if ($("authSubmit")) {
-      $("authSubmit").textContent = "Administrator Login";
-    }
+      if (submitButton) {
+        submitButton.textContent = "Administrator Login";
+      }
 
-    setMessage("");
-  });
-
-
-  // STUDENT MODE
-  $("studentMode")?.addEventListener("click", () => {
-
-    selectedMode = "student";
-
-    $("studentMode").className = "primary";
-    $("teacherMode").className = "secondary";
-  });
-
-
-  // TEACHER MODE
-  $("teacherMode")?.addEventListener("click", () => {
-
-    selectedMode = "teacher";
-
-    $("teacherMode").className = "primary";
-    $("studentMode").className = "secondary";
-  });
-}
-
-
-// ============================================================
-// AUTH FORM
-// ============================================================
-
-function setupAuthForm() {
-
-  $("authForm")?.addEventListener("submit", async (event) => {
-
-    event.preventDefault();
-
-    setMessage("Please wait...");
-
-    const email = $("email")?.value.trim();
-    const password = $("password")?.value;
-
-    if (!email || !password) {
-      setMessage("Please enter your email and password.", true);
       return;
     }
 
-
-    // --------------------------------------------------------
-    // CREATE STUDENT / TEACHER ACCOUNT
-    // --------------------------------------------------------
+    // ----------------------------------------------------------
+    // CREATE STUDENT ACCOUNT
+    // ----------------------------------------------------------
 
     if (authMode === "signup") {
+      if (loginTab) loginTab.className = "secondary";
+      if (signupTab) signupTab.className = "primary";
+      if (adminTab) adminTab.className = "secondary";
 
-      const username =
-        $("username")?.value.trim() ||
-        email.split("@")[0];
+      // Student only
+      show(studentButton);
+      hide(teacherButton);
 
-      if (!username) {
-        setMessage("Please enter a username.", true);
+      show(usernameField);
+
+      if (studentButton) {
+        studentButton.className = "primary";
+      }
+
+      if (submitButton) {
+        submitButton.textContent = "Create Account";
+      }
+
+      return;
+    }
+
+    // ----------------------------------------------------------
+    // NORMAL LOGIN
+    // ----------------------------------------------------------
+
+    if (loginTab) loginTab.className = "primary";
+    if (signupTab) signupTab.className = "secondary";
+    if (adminTab) adminTab.className = "secondary";
+
+    show(studentButton);
+    show(teacherButton);
+
+    hide(usernameField);
+
+    if (loginRole === "student") {
+      if (studentButton) studentButton.className = "primary";
+      if (teacherButton) teacherButton.className = "secondary";
+    } else {
+      if (studentButton) studentButton.className = "secondary";
+      if (teacherButton) teacherButton.className = "primary";
+    }
+
+    if (submitButton) {
+      submitButton.textContent = "Login";
+    }
+  }
+
+  // ============================================================
+  // AUTH BUTTONS
+  // ============================================================
+
+  function setupAuthButtons() {
+    $("loginTab")?.addEventListener("click", () => {
+      authMode = "login";
+      loginRole = "student";
+
+      message("");
+      updateAuthPage();
+    });
+
+    $("signupTab")?.addEventListener("click", () => {
+      authMode = "signup";
+      loginRole = "student";
+
+      message("");
+      updateAuthPage();
+    });
+
+    $("adminLoginTab")?.addEventListener("click", () => {
+      authMode = "admin-login";
+
+      message("");
+      updateAuthPage();
+    });
+
+    $("studentMode")?.addEventListener("click", () => {
+      if (authMode !== "login") return;
+
+      loginRole = "student";
+
+      message("");
+      updateAuthPage();
+    });
+
+    $("teacherMode")?.addEventListener("click", () => {
+      if (authMode !== "login") return;
+
+      loginRole = "teacher";
+
+      message("");
+      updateAuthPage();
+    });
+  }
+
+  // ============================================================
+  // AUTH FORM
+  // ============================================================
+
+  function setupAuthForm() {
+    $("authForm")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const email = $("email")?.value.trim();
+      const password = $("password")?.value;
+      const username = $("username")?.value.trim();
+
+      if (!email || !password) {
+        message("Please enter your email and password.", true);
         return;
       }
 
-      const { data, error } =
-        await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              username: username
+      // ========================================================
+      // STUDENT ACCOUNT CREATION
+      // ========================================================
+
+      if (authMode === "signup") {
+        if (!username) {
+          message("Please enter a username.", true);
+          return;
+        }
+
+        if (password.length < 6) {
+          message(
+            "Your password must be at least 6 characters.",
+            true
+          );
+          return;
+        }
+
+        message("Creating your account...");
+
+        const { data, error } =
+          await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+              data: {
+                username: username
+              }
             }
+          });
+
+        if (error) {
+          console.error(error);
+          message(error.message, true);
+          return;
+        }
+
+        // If email confirmation is OFF, Supabase normally gives
+        // us a session immediately.
+        if (data?.user) {
+          currentUser = data.user;
+
+          // Try to update the profile username.
+          // The database trigger should already create the profile.
+          await supabaseClient
+            .from("profiles")
+            .update({
+              username: username
+            })
+            .eq("id", data.user.id);
+
+          await loadCurrentProfile();
+
+          if (currentProfile) {
+            message("Account created successfully!");
+
+            setTimeout(() => {
+              showApp();
+            }, 500);
+
+            return;
           }
+        }
+
+        message(
+          "Account created. You can now use the Login button."
+        );
+
+        authMode = "login";
+        loginRole = "student";
+        updateAuthPage();
+
+        return;
+      }
+
+      // ========================================================
+      // LOGIN
+      // ========================================================
+
+      message("Logging in...");
+
+      const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
         });
 
       if (error) {
-        setMessage(error.message, true);
+        console.error(error);
+        message(error.message, true);
         return;
       }
 
-      if (!data.user) {
-        setMessage("Account could not be created.", true);
+      currentUser = data.user;
+
+      await loadCurrentProfile();
+
+      if (!currentProfile) {
+        await supabaseClient.auth.signOut();
+
+        currentUser = null;
+
+        message(
+          "Your account profile could not be found.",
+          true
+        );
+
         return;
       }
 
-      setMessage(
-        "Account created! Check your email if confirmation is required."
-      );
+      // ========================================================
+      // CHECK ACTIVE
+      // ========================================================
 
-      return;
-    }
+      if (currentProfile.active === false) {
+        await supabaseClient.auth.signOut();
 
+        currentUser = null;
+        currentProfile = null;
 
-    // --------------------------------------------------------
-    // LOGIN
-    // --------------------------------------------------------
+        message(
+          "This account has been deactivated.",
+          true
+        );
+
+        return;
+      }
+
+      // ========================================================
+      // ADMINISTRATOR LOGIN
+      // ========================================================
+
+      if (authMode === "admin-login") {
+        if (currentProfile.role !== "admin") {
+          await supabaseClient.auth.signOut();
+
+          currentUser = null;
+          currentProfile = null;
+
+          message(
+            "Administrator access denied.",
+            true
+          );
+
+          return;
+        }
+
+        await showApp();
+        return;
+      }
+
+      // ========================================================
+      // TEACHER LOGIN
+      // ========================================================
+
+      if (loginRole === "teacher") {
+        if (currentProfile.role !== "teacher") {
+          await supabaseClient.auth.signOut();
+
+          currentUser = null;
+          currentProfile = null;
+
+          message(
+            "This account is not a teacher account.",
+            true
+          );
+
+          return;
+        }
+
+        await showApp();
+        return;
+      }
+
+      // ========================================================
+      // STUDENT LOGIN
+      // ========================================================
+
+      if (loginRole === "student") {
+        if (currentProfile.role !== "student") {
+          await supabaseClient.auth.signOut();
+
+          currentUser = null;
+          currentProfile = null;
+
+          message(
+            "This account is not a student account.",
+            true
+          );
+
+          return;
+        }
+
+        await showApp();
+      }
+    });
+  }
+
+  // ============================================================
+  // LOAD CURRENT PROFILE
+  // ============================================================
+
+  async function loadCurrentProfile() {
+    if (!currentUser) return null;
 
     const { data, error } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("id", currentUser.id)
+        .single();
 
     if (error) {
-      setMessage(error.message, true);
+      console.error("Profile error:", error);
+      currentProfile = null;
+      return null;
+    }
+
+    currentProfile = data;
+
+    return data;
+  }
+
+  // ============================================================
+  // SHOW APP
+  // ============================================================
+
+  async function showApp() {
+    hide($("auth"));
+    show($("app"));
+
+    const username =
+      currentProfile?.username ||
+      currentUser?.email ||
+      "User";
+
+    if ($("who")) {
+      $("who").textContent = username;
+    }
+
+    if ($("welcome")) {
+      $("welcome").textContent =
+        `Welcome, ${username}!`;
+    }
+
+    if ($("welcomeText")) {
+      $("welcomeText").textContent =
+        "Welcome to your BLP Student Hub dashboard.";
+    }
+
+    if ($("roleBadge")) {
+      $("roleBadge").textContent =
+        String(currentProfile?.role || "student")
+          .toUpperCase();
+    }
+
+    // Student
+    if (currentProfile?.role === "student") {
+      hide($("teacherDashboard"));
+      hide($("teacherControls"));
+      hide($("adminDashboard"));
+      hide($("adminControls"));
+    }
+
+    // Teacher
+    if (currentProfile?.role === "teacher") {
+      show($("teacherDashboard"));
+      show($("teacherControls"));
+      hide($("adminDashboard"));
+      hide($("adminControls"));
+    }
+
+    // Admin
+    if (currentProfile?.role === "admin") {
+      show($("teacherDashboard"));
+      show($("teacherControls"));
+      show($("adminDashboard"));
+      show($("adminControls"));
+    }
+
+    await loadAnnouncements();
+    await loadLinks();
+
+    if (
+      currentProfile?.role === "teacher" ||
+      currentProfile?.role === "admin"
+    ) {
+      await loadUsers();
+    }
+  }
+
+  // ============================================================
+  // LOGOUT
+  // ============================================================
+
+  function setupLogout() {
+    $("logout")?.addEventListener("click", async () => {
+      await supabaseClient.auth.signOut();
+
+      currentUser = null;
+      currentProfile = null;
+
+      hide($("app"));
+      show($("auth"));
+
+      authMode = "login";
+      loginRole = "student";
+
+      if ($("authForm")) {
+        $("authForm").reset();
+      }
+
+      message("");
+      updateAuthPage();
+    });
+  }
+
+  // ============================================================
+  // ANNOUNCEMENTS
+  // ============================================================
+
+  async function loadAnnouncements() {
+    const { data, error } =
+      await supabaseClient
+        .from("announcements")
+        .select("*")
+        .order("created_at", {
+          ascending: false
+        });
+
+    if (error) {
+      console.error("Announcement error:", error);
       return;
     }
 
-    currentUser = data.user;
+    const list = $("announcementList");
+
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      list.innerHTML =
+        "<p>No announcements yet.</p>";
+    } else {
+      data.forEach((announcement) => {
+        const item = document.createElement("div");
+
+        item.className = "announcement";
+
+        item.innerHTML = `
+          <h3>${escapeHTML(announcement.title)}</h3>
+          <p>${escapeHTML(
+            announcement.content ||
+            announcement.text ||
+            ""
+          )}</p>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    if ($("announcementCount")) {
+      $("announcementCount").textContent =
+        data?.length || 0;
+    }
+
+    if ($("teacherAnnouncementCount")) {
+      $("teacherAnnouncementCount").textContent =
+        data?.length || 0;
+    }
+  }
+
+  // ============================================================
+  // POST ANNOUNCEMENT
+  // ============================================================
+
+  function setupAnnouncementForm() {
+    $("postAnnouncement")?.addEventListener(
+      "click",
+      async () => {
+        if (
+          !currentProfile ||
+          !["teacher", "admin"].includes(
+            currentProfile.role
+          )
+        ) {
+          return;
+        }
+
+        const title =
+          $("announcementTitle")?.value.trim();
+
+        const content =
+          $("announcementText")?.value.trim();
+
+        if (!title || !content) {
+          alert(
+            "Please enter a title and message."
+          );
+          return;
+        }
+
+        const { error } =
+          await supabaseClient
+            .from("announcements")
+            .insert({
+              title: title,
+              content: content,
+              created_by: currentUser.id
+            });
+
+        if (error) {
+          console.error(error);
+          alert(error.message);
+          return;
+        }
+
+        $("announcementTitle").value = "";
+        $("announcementText").value = "";
+
+        await loadAnnouncements();
+      }
+    );
+  }
+
+  // ============================================================
+  // LINKS
+  // ============================================================
+
+  async function loadLinks() {
+    const { data, error } =
+      await supabaseClient
+        .from("links")
+        .select("*")
+        .order("created_at", {
+          ascending: false
+        });
+
+    if (error) {
+      console.error("Links error:", error);
+      return;
+    }
+
+    const list = $("linkList");
+
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      list.innerHTML =
+        "<p>No links posted yet.</p>";
+    } else {
+      data.forEach((link) => {
+        const item = document.createElement("div");
+
+        item.className = "link-item";
+
+        let safeUrl = String(link.url || "").trim();
+
+        if (
+          !safeUrl.startsWith("http://") &&
+          !safeUrl.startsWith("https://")
+        ) {
+          safeUrl = "https://" + safeUrl;
+        }
+
+        item.innerHTML = `
+          <a
+            href="${escapeHTML(safeUrl)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ${escapeHTML(link.title)}
+          </a>
+        `;
+
+        list.appendChild(item);
+      });
+    }
+
+    if ($("linkCount")) {
+      $("linkCount").textContent =
+        data?.length || 0;
+    }
+
+    if ($("teacherLinkCount")) {
+      $("teacherLinkCount").textContent =
+        data?.length || 0;
+    }
+  }
+
+  // ============================================================
+  // POST LINK
+  // ============================================================
+
+  function setupLinkForm() {
+    $("postLink")?.addEventListener(
+      "click",
+      async () => {
+        if (
+          !currentProfile ||
+          !["teacher", "admin"].includes(
+            currentProfile.role
+          )
+        ) {
+          return;
+        }
+
+        const title =
+          $("linkTitle")?.value.trim();
+
+        const url =
+          $("linkUrl")?.value.trim();
+
+        if (!title || !url) {
+          alert(
+            "Please enter a link name and URL."
+          );
+          return;
+        }
+
+        let finalUrl = url;
+
+        if (
+          !finalUrl.startsWith("http://") &&
+          !finalUrl.startsWith("https://")
+        ) {
+          finalUrl = "https://" + finalUrl;
+        }
+
+        const { error } =
+          await supabaseClient
+            .from("links")
+            .insert({
+              title: title,
+              url: finalUrl,
+              created_by: currentUser.id
+            });
+
+        if (error) {
+          console.error(error);
+          alert(error.message);
+          return;
+        }
+
+        $("linkTitle").value = "";
+        $("linkUrl").value = "";
+
+        await loadLinks();
+      }
+    );
+  }
+
+  // ============================================================
+  // USERS
+  // ============================================================
+
+  async function loadUsers() {
+    if (
+      !currentProfile ||
+      !["teacher", "admin"].includes(
+        currentProfile.role
+      )
+    ) {
+      return;
+    }
+
+    const { data, error } =
+      await supabaseClient
+        .from("profiles")
+        .select("*")
+        .order("created_at", {
+          ascending: true
+        });
+
+    if (error) {
+      console.error("User error:", error);
+      return;
+    }
+
+    if ($("userCount")) {
+      $("userCount").textContent =
+        data?.length || 0;
+    }
+
+    const list = $("userList");
+
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      list.innerHTML =
+        "<p>No users found.</p>";
+      return;
+    }
+
+    data.forEach((profile) => {
+      const item =
+        document.createElement("div");
+
+      item.className = "user-item";
+
+      const info =
+        document.createElement("div");
+
+      info.innerHTML = `
+        <strong>
+          ${escapeHTML(
+            profile.username || "Unnamed User"
+          )}
+        </strong>
+
+        <span>
+          ${escapeHTML(profile.role)}
+        </span>
+
+        <small>
+          ${profile.active ? "Active" : "Inactive"}
+        </small>
+      `;
+
+      item.appendChild(info);
+
+      // --------------------------------------------------------
+      // TEACHER CONTROLS
+      // --------------------------------------------------------
+
+      if (
+        currentProfile.role === "teacher" &&
+        profile.role === "student" &&
+        profile.active
+      ) {
+        const button =
+          document.createElement("button");
+
+        button.textContent = "Deactivate";
+        button.className = "secondary";
+
+        button.addEventListener(
+          "click",
+          () => deactivateStudent(profile.id)
+        );
+
+        item.appendChild(button);
+      }
+
+      // --------------------------------------------------------
+      // ADMIN CONTROLS
+      // --------------------------------------------------------
+
+      if (
+        currentProfile.role === "admin" &&
+        profile.id !== currentUser.id
+      ) {
+        const select =
+          document.createElement("select");
+
+        ["student", "teacher", "admin"]
+          .forEach((role) => {
+            const option =
+              document.createElement("option");
+
+            option.value = role;
+            option.textContent =
+              role.charAt(0).toUpperCase() +
+              role.slice(1);
+
+            if (profile.role === role) {
+              option.selected = true;
+            }
+
+            select.appendChild(option);
+          });
+
+        select.addEventListener(
+          "change",
+          async () => {
+            await changeUserRole(
+              profile.id,
+              select.value
+            );
+          }
+        );
+
+        item.appendChild(select);
+
+        const statusButton =
+          document.createElement("button");
+
+        statusButton.className = "secondary";
+
+        statusButton.textContent =
+          profile.active
+            ? "Deactivate"
+            : "Activate";
+
+        statusButton.addEventListener(
+          "click",
+          async () => {
+            await changeUserStatus(
+              profile.id,
+              !profile.active
+            );
+          }
+        );
+
+        item.appendChild(statusButton);
+      }
+
+      list.appendChild(item);
+    });
+  }
+
+  // ============================================================
+  // DEACTIVATE STUDENT
+  // ============================================================
+
+  async function deactivateStudent(userId) {
+    if (
+      !currentProfile ||
+      !["teacher", "admin"].includes(
+        currentProfile.role
+      )
+    ) {
+      return;
+    }
+
+    if (
+      !confirm(
+        "Are you sure you want to deactivate this student?"
+      )
+    ) {
+      return;
+    }
+
+    const { error } =
+      await supabaseClient
+        .from("profiles")
+        .update({
+          active: false
+        })
+        .eq("id", userId)
+        .eq("role", "student");
+
+    if (error) {
+      console.error(error);
+      alert(error.message);
+      return;
+    }
+
+    await loadUsers();
+  }
+
+  // ============================================================
+  // ADMIN CHANGE ROLE
+  // ============================================================
+
+  async function changeUserRole(userId, newRole) {
+    if (
+      !currentProfile ||
+      currentProfile.role !== "admin"
+    ) {
+      return;
+    }
+
+    if (
+      !["student", "teacher", "admin"]
+        .includes(newRole)
+    ) {
+      return;
+    }
+
+    const { error } =
+      await supabaseClient
+        .from("profiles")
+        .update({
+          role: newRole
+        })
+        .eq("id", userId);
+
+    if (error) {
+      console.error(error);
+      alert(error.message);
+      return;
+    }
+
+    await loadUsers();
+  }
+
+  // ============================================================
+  // ADMIN CHANGE STATUS
+  // ============================================================
+
+  async function changeUserStatus(userId, active) {
+    if (
+      !currentProfile ||
+      currentProfile.role !== "admin"
+    ) {
+      return;
+    }
+
+    const { error } =
+      await supabaseClient
+        .from("profiles")
+        .update({
+          active: active
+        })
+        .eq("id", userId);
+
+    if (error) {
+      console.error(error);
+      alert(error.message);
+      return;
+    }
+
+    await loadUsers();
+  }
+
+  // ============================================================
+  // EXISTING SESSION
+  // ============================================================
+
+  async function checkExistingSession() {
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      show($("auth"));
+      hide($("app"));
+      return;
+    }
+
+    currentUser = session.user;
 
     await loadCurrentProfile();
 
-
-    // --------------------------------------------------------
-    // ADMINISTRATOR LOGIN CHECK
-    // --------------------------------------------------------
-
-    if (authMode === "admin-login") {
-
-      if (
-        !currentProfile ||
-        currentProfile.role !== "admin" ||
-        currentProfile.active !== true
-      ) {
-
-        await supabase.auth.signOut();
-
-        currentUser = null;
-        currentProfile = null;
-
-        setMessage(
-          "Administrator access denied. This account is not an administrator.",
-          true
-        );
-
-        return;
-      }
-    }
-
-
-    // --------------------------------------------------------
-    // TEACHER LOGIN CHECK
-    // --------------------------------------------------------
-
     if (
-      authMode === "login" &&
-      selectedMode === "teacher"
+      !currentProfile ||
+      currentProfile.active === false
     ) {
+      await supabaseClient.auth.signOut();
 
-      if (
-        !currentProfile ||
-        currentProfile.role !== "teacher"
-      ) {
+      currentUser = null;
+      currentProfile = null;
 
-        await supabase.auth.signOut();
+      show($("auth"));
+      hide($("app"));
 
-        currentUser = null;
-        currentProfile = null;
+      message(
+        "This account is inactive.",
+        true
+      );
 
-        setMessage(
-          "This account is not a teacher account.",
-          true
-        );
-
-        return;
-      }
+      return;
     }
-
-
-    // --------------------------------------------------------
-    // STUDENT LOGIN CHECK
-    // --------------------------------------------------------
-
-    if (
-      authMode === "login" &&
-      selectedMode === "student"
-    ) {
-
-      if (
-        !currentProfile ||
-        currentProfile.role !== "student"
-      ) {
-
-        await supabase.auth.signOut();
-
-        currentUser = null;
-        currentProfile = null;
-
-        setMessage(
-          "This account is not a student account.",
-          true
-        );
-
-        return;
-      }
-    }
-
 
     await showApp();
-  });
-}
-
-
-// ============================================================
-// LOAD PROFILE
-// ============================================================
-
-async function loadCurrentProfile() {
-
-  if (!currentUser) return null;
-
-  const { data, error } =
-    await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", currentUser.id)
-      .single();
-
-  if (error) {
-
-    console.error("Profile error:", error);
-
-    currentProfile = null;
-
-    return null;
   }
 
-  currentProfile = data;
-
-  return data;
-}
-
-
-// ============================================================
-// SHOW APP
-// ============================================================
-
-async function showApp() {
-
-  hide($("auth"));
-
-  hide($("loginPage"));
-
-  hide($("authPage"));
-
-  show($("app"));
-
-  const username =
-    currentProfile?.username ||
-    currentUser?.email ||
-    "User";
-
-  setText("who", username);
-
-  setText(
-    "welcome",
-    `Welcome, ${username}!`
-  );
-
-  setText(
-    "welcomeText",
-    `You are logged in as ${currentProfile?.role || "student"}.`
-  );
-
-  setText(
-    "roleBadge",
-    (currentProfile?.role || "student").toUpperCase()
-  );
-
-
-  // STUDENT
-  if (currentProfile?.role === "student") {
-
-    hide($("teacherDashboard"));
-    hide($("teacherControls"));
-    hide($("adminDashboard"));
-    hide($("adminControls"));
-  }
-
-
-  // TEACHER
-  if (currentProfile?.role === "teacher") {
-
-    show($("teacherDashboard"));
-    show($("teacherControls"));
-
-    hide($("adminDashboard"));
-    hide($("adminControls"));
-  }
-
-
-  // ADMIN
-  if (currentProfile?.role === "admin") {
-
-    show($("teacherDashboard"));
-    show($("teacherControls"));
-
-    show($("adminDashboard"));
-    show($("adminControls"));
-  }
-
-
-  await loadAnnouncements();
-  await loadLinks();
-
-
-  if (
-    currentProfile?.role === "teacher" ||
-    currentProfile?.role === "admin"
-  ) {
-    await loadUsers();
-  }
-}
-
-
-// ============================================================
-// LOGOUT
-// ============================================================
-
-function setupLogout() {
-
-  $("logout")?.addEventListener("click", async () => {
-
-    await supabase.auth.signOut();
-
-    currentUser = null;
-    currentProfile = null;
-
-    show($("auth"));
-    show($("loginPage"));
-    show($("authPage"));
-
-    hide($("app"));
-
-    setMessage("You have been logged out.");
-  });
-}
-
-
-// ============================================================
-// ANNOUNCEMENTS
-// ============================================================
-
-async function loadAnnouncements() {
-
-  const { data, error } =
-    await supabase
-      .from("announcements")
-      .select("*")
-      .order("created_at", {
-        ascending: false
-      });
-
-  if (error) {
-
-    console.error(error);
-
-    return;
-  }
-
-  const list = $("announcementList");
-
-  if (!list) return;
-
-  list.innerHTML = "";
-
-  if (!data || data.length === 0) {
-
-    list.innerHTML =
-      "<p>No announcements yet.</p>";
-
-  } else {
-
-    data.forEach((announcement) => {
-
-      const item =
-        document.createElement("div");
-
-      item.className = "announcement";
-
-      item.innerHTML = `
-        <h3>${escapeHTML(announcement.title)}</h3>
-        <p>${escapeHTML(announcement.content || announcement.text || "")}</p>
-      `;
-
-      list.appendChild(item);
-    });
-  }
-
-
-  setText(
-    "announcementCount",
-    data?.length || 0
-  );
-
-  setText(
-    "teacherAnnouncementCount",
-    data?.length || 0
-  );
-}
-
-
-// ============================================================
-// POST ANNOUNCEMENT
-// ============================================================
-
-function setupAnnouncementForm() {
-
-  $("postAnnouncement")?.addEventListener(
-    "click",
-    async () => {
-
-      if (
-        !currentProfile ||
-        !["teacher", "admin"].includes(
-          currentProfile.role
-        )
-      ) {
-        return;
-      }
-
-      const title =
-        $("announcementTitle")?.value.trim();
-
-      const content =
-        $("announcementText")?.value.trim();
-
-      if (!title || !content) {
-
-        alert(
-          "Please enter an announcement title and message."
-        );
-
-        return;
-      }
-
-
-      const { error } =
-        await supabase
-          .from("announcements")
-          .insert({
-            title: title,
-            content: content,
-            created_by: currentUser.id
-          });
-
-
-      if (error) {
-
-        console.error(error);
-
-        alert(error.message);
-
-        return;
-      }
-
-
-      if ($("announcementTitle")) {
-        $("announcementTitle").value = "";
-      }
-
-      if ($("announcementText")) {
-        $("announcementText").value = "";
-      }
-
-      await loadAnnouncements();
-    }
-  );
-}
-
-
-// ============================================================
-// LINKS
-// ============================================================
-
-async function loadLinks() {
-
-  const { data, error } =
-    await supabase
-      .from("links")
-      .select("*")
-      .order("created_at", {
-        ascending: false
-      });
-
-  if (error) {
-
-    console.error(error);
-
-    return;
-  }
-
-  const list = $("linkList");
-
-  if (!list) return;
-
-  list.innerHTML = "";
-
-
-  if (!data || data.length === 0) {
-
-    list.innerHTML =
-      "<p>No links posted yet.</p>";
-
-  } else {
-
-    data.forEach((link) => {
-
-      const item =
-        document.createElement("div");
-
-      item.className = "link-item";
-
-      const safeURL = escapeHTML(link.url);
-
-      item.innerHTML = `
-        <a
-          href="${safeURL}"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          ${escapeHTML(link.title)}
-        </a>
-      `;
-
-      list.appendChild(item);
-    });
-  }
-
-
-  setText(
-    "linkCount",
-    data?.length || 0
-  );
-
-  setText(
-    "teacherLinkCount",
-    data?.length || 0
-  );
-}
-
-
-// ============================================================
-// POST LINK
-// ============================================================
-
-function setupLinkForm() {
-
-  $("postLink")?.addEventListener(
-    "click",
-    async () => {
-
-      if (
-        !currentProfile ||
-        !["teacher", "admin"].includes(
-          currentProfile.role
-        )
-      ) {
-        return;
-      }
-
-      const title =
-        $("linkTitle")?.value.trim();
-
-      const url =
-        $("linkUrl")?.value.trim();
-
-
-      if (!title || !url) {
-
-        alert(
-          "Please enter a link title and URL."
-        );
-
-        return;
-      }
-
-
-      let finalURL = url;
-
-      if (
-        !finalURL.startsWith("http://") &&
-        !finalURL.startsWith("https://")
-      ) {
-        finalURL = "https://" + finalURL;
-      }
-
-
-      const { error } =
-        await supabase
-          .from("links")
-          .insert({
-            title: title,
-            url: finalURL,
-            created_by: currentUser.id
-          });
-
-
-      if (error) {
-
-        console.error(error);
-
-        alert(error.message);
-
-        return;
-      }
-
-
-      if ($("linkTitle")) {
-        $("linkTitle").value = "";
-      }
-
-      if ($("linkUrl")) {
-        $("linkUrl").value = "";
-      }
-
-      await loadLinks();
-    }
-  );
-}
-
-
-// ============================================================
-// USERS
-// ============================================================
-
-async function loadUsers() {
-
-  if (
-    !currentProfile ||
-    !["teacher", "admin"].includes(
-      currentProfile.role
-    )
-  ) {
-    return;
-  }
-
-
-  const { data, error } =
-    await supabase
-      .from("profiles")
-      .select("*")
-      .order("created_at", {
-        ascending: true
-      });
-
-
-  if (error) {
-
-    console.error("Users error:", error);
-
-    return;
-  }
-
-
-  setText(
-    "userCount",
-    data?.length || 0
-  );
-
-
-  const list = $("userList");
-
-  if (!list) return;
-
-  list.innerHTML = "";
-
-
-  if (!data || data.length === 0) {
-
-    list.innerHTML =
-      "<p>No users found.</p>";
-
-    return;
-  }
-
-
-  data.forEach((profile) => {
-
-    const item =
-      document.createElement("div");
-
-    item.className = "user-item";
-
-
-    const username =
-      escapeHTML(
-        profile.username || "Unnamed User"
-      );
-
-    const role =
-      escapeHTML(profile.role);
-
-    const status =
-      profile.active
-        ? "Active"
-        : "Inactive";
-
-
-    item.innerHTML = `
-      <div>
-        <strong>${username}</strong>
-        <span>${role}</span>
-        <small>${status}</small>
-      </div>
-    `;
-
-
-    // --------------------------------------------------------
-    // TEACHER: DEACTIVATE STUDENTS
-    // --------------------------------------------------------
-
-    if (
-      currentProfile.role === "teacher" &&
-      profile.role === "student" &&
-      profile.active
-    ) {
-
-      const button =
-        document.createElement("button");
-
-      button.textContent = "Kick";
-
-      button.className = "secondary";
-
-      button.addEventListener(
-        "click",
-        () => deactivateStudent(profile.id)
-      );
-
-      item.appendChild(button);
-    }
-
-
-    // --------------------------------------------------------
-    // ADMIN: ROLE MANAGEMENT
-    // --------------------------------------------------------
-
-    if (
-      currentProfile.role === "admin" &&
-      profile.id !== currentUser.id
-    ) {
-
-      const select =
-        document.createElement("select");
-
-      ["student", "teacher", "admin"]
-        .forEach((roleOption) => {
-
-          const option =
-            document.createElement("option");
-
-          option.value = roleOption;
-          option.textContent =
-            roleOption.charAt(0).toUpperCase() +
-            roleOption.slice(1);
-
-          if (profile.role === roleOption) {
-            option.selected = true;
-          }
-
-          select.appendChild(option);
-        });
-
-
-      select.addEventListener(
-        "change",
-        async () => {
-
-          await changeUserRole(
-            profile.id,
-            select.value
-          );
+  // ============================================================
+  // AUTH STATE
+  // ============================================================
+
+  function setupAuthState() {
+    supabaseClient.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_OUT") {
+          currentUser = null;
+          currentProfile = null;
+
+          hide($("app"));
+          show($("auth"));
+
+          return;
         }
-      );
-
-
-      item.appendChild(select);
-
-
-      const activeButton =
-        document.createElement("button");
-
-      activeButton.textContent =
-        profile.active
-          ? "Deactivate"
-          : "Activate";
-
-      activeButton.className = "secondary";
-
-      activeButton.addEventListener(
-        "click",
-        async () => {
-
-          await changeUserStatus(
-            profile.id,
-            !profile.active
-          );
-        }
-      );
-
-      item.appendChild(activeButton);
-    }
-
-
-    list.appendChild(item);
-  });
-}
-
-
-// ============================================================
-// DEACTIVATE STUDENT
-// ============================================================
-
-async function deactivateStudent(userId) {
-
-  if (
-    !currentProfile ||
-    !["teacher", "admin"].includes(
-      currentProfile.role
-    )
-  ) {
-    return;
-  }
-
-
-  const confirmed =
-    confirm(
-      "Are you sure you want to deactivate this student?"
+      }
     );
-
-  if (!confirmed) return;
-
-
-  const { error } =
-    await supabase
-      .from("profiles")
-      .update({
-        active: false
-      })
-      .eq("id", userId)
-      .eq("role", "student");
-
-
-  if (error) {
-
-    alert(error.message);
-
-    console.error(error);
-
-    return;
   }
 
+  // ============================================================
+  // START
+  // ============================================================
 
-  await loadUsers();
-}
+  async function startApp() {
+    console.log("BLP Student Hub starting...");
 
+    setupAuthButtons();
+    setupAuthForm();
+    setupLogout();
+    setupAnnouncementForm();
+    setupLinkForm();
+    setupAuthState();
 
-// ============================================================
-// ADMIN: CHANGE USER ROLE
-// ============================================================
+    updateAuthPage();
 
-async function changeUserRole(
-  userId,
-  newRole
-) {
+    await checkExistingSession();
 
-  if (
-    !currentProfile ||
-    currentProfile.role !== "admin"
-  ) {
-    return;
+    console.log("BLP Student Hub loaded.");
   }
 
+  // ============================================================
+  // RUN AFTER PAGE LOAD
+  // ============================================================
 
-  if (
-    !["student", "teacher", "admin"]
-      .includes(newRole)
-  ) {
-    return;
-  }
-
-
-  const { error } =
-    await supabase
-      .from("profiles")
-      .update({
-        role: newRole
-      })
-      .eq("id", userId);
-
-
-  if (error) {
-
-    alert(error.message);
-
-    console.error(error);
-
-    return;
-  }
-
-
-  await loadUsers();
-}
-
-
-// ============================================================
-// ADMIN: ACTIVATE / DEACTIVATE USER
-// ============================================================
-
-async function changeUserStatus(
-  userId,
-  active
-) {
-
-  if (
-    !currentProfile ||
-    currentProfile.role !== "admin"
-  ) {
-    return;
-  }
-
-
-  const { error } =
-    await supabase
-      .from("profiles")
-      .update({
-        active: active
-      })
-      .eq("id", userId);
-
-
-  if (error) {
-
-    alert(error.message);
-
-    console.error(error);
-
-    return;
-  }
-
-
-  await loadUsers();
-}
-
-
-// ============================================================
-// SUPABASE SESSION
-// ============================================================
-
-async function checkExistingSession() {
-
-  const {
-    data: {
-      session
-    }
-  } = await supabase.auth.getSession();
-
-
-  if (!session) {
-
-    show($("auth"));
-    show($("loginPage"));
-    show($("authPage"));
-
-    hide($("app"));
-
-    return;
-  }
-
-
-  currentUser = session.user;
-
-  await loadCurrentProfile();
-
-
-  if (
-    !currentProfile ||
-    currentProfile.active !== true
-  ) {
-
-    await supabase.auth.signOut();
-
-    currentUser = null;
-    currentProfile = null;
-
-    show($("auth"));
-
-    hide($("app"));
-
-    setMessage(
-      "This account is inactive.",
-      true
+  if (document.readyState === "loading") {
+    document.addEventListener(
+      "DOMContentLoaded",
+      startApp
     );
-
-    return;
+  } else {
+    startApp();
   }
 
-
-  await showApp();
-}
-
-
-// ============================================================
-// AUTH STATE LISTENER
-// ============================================================
-
-function setupAuthListener() {
-
-  supabase.auth.onAuthStateChange(
-    async (event, session) => {
-
-      if (event === "SIGNED_OUT") {
-
-        currentUser = null;
-        currentProfile = null;
-
-        show($("auth"));
-        hide($("app"));
-
-        return;
-      }
-
-
-      if (
-        session &&
-        event === "SIGNED_IN"
-      ) {
-
-        currentUser = session.user;
-
-        await loadCurrentProfile();
-
-        if (currentProfile) {
-          await showApp();
-        }
-      }
-    }
-  );
-}
-
-
-// ============================================================
-// START APPLICATION
-// ============================================================
-
-async function startApp() {
-
-  console.log("BLP Student Hub starting...");
-
-
-  // Set up buttons FIRST
-  setupAuthButtons();
-
-  setupAuthForm();
-
-  setupLogout();
-
-  setupAnnouncementForm();
-
-  setupLinkForm();
-
-  setupAuthListener();
-
-
-  // Check for existing login
-  await checkExistingSession();
-
-
-  console.log("BLP Student Hub loaded.");
-}
-
-
-// ============================================================
-// RUN
-// ============================================================
-
-if (
-  document.readyState === "loading"
-) {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    startApp
-  );
-
-} else {
-
-  startApp();
-}
 })();
