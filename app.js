@@ -87,6 +87,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 function setupAuthButtons() {
 
+  $("adminLoginTab")?.addEventListener("click", () => {
+
+  authMode = "admin-login";
+  selectedMode = "admin";
+
+  $("loginTab").className = "secondary";
+  $("signupTab").className = "secondary";
+  $("adminLoginTab").className = "primary";
+
+  hide($("studentMode"));
+  hide($("teacherMode"));
+
+  if ($("authSubmit")) {
+    $("authSubmit").textContent = "Administrator Login";
+  }
+
+  setMessage("");
+});
+
   $("loginTab")?.addEventListener("click", () => {
 
     authMode = "login";
