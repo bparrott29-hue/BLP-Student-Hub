@@ -6,8 +6,6 @@
 
   <title>BLP Student Hub</title>
 
-  <link rel="stylesheet" href="style.css">
-
   <style>
     * {
       box-sizing: border-box;
@@ -15,45 +13,59 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: Arial, Helvetica, sans-serif;
       background: #eef3ff;
-      color: #182238;
+      color: #18233d;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* LOGIN */
+    /* =========================
+       AUTH PAGE
+    ========================= */
 
     #auth {
       min-height: 100vh;
       display: flex;
-      align-items: center;
       justify-content: center;
-      padding: 20px;
+      align-items: flex-start;
+      padding: 0;
     }
 
     .auth-card {
       width: 100%;
       max-width: 440px;
+      min-height: 100vh;
       background: white;
-      border-radius: 18px;
-      padding: 32px;
-      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.10);
+      padding: 26px 32px 40px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.06);
     }
 
     .logo {
       width: 58px;
       height: 58px;
       margin: 0 auto 16px;
-      border-radius: 15px;
-      background: #2859d9;
+      background: #2d5bda;
       color: white;
+      border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
+      font-size: 21px;
       font-weight: bold;
     }
 
@@ -65,67 +77,66 @@
 
     .subtitle {
       text-align: center;
-      color: #69758d;
-      margin: 12px 0 24px;
+      color: #687795;
+      margin: 10px 0 25px;
     }
 
     .tabs {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-bottom: 18px;
     }
 
-    .tabs button {
-      flex: 1;
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 18px;
     }
 
-    button {
-      border: 0;
-      border-radius: 9px;
-      padding: 12px 16px;
+    .tabs button,
+    .mode-tabs button {
+      min-height: 58px;
+      border-radius: 10px;
       font-weight: bold;
-      cursor: pointer;
+      padding: 8px;
     }
 
     .primary {
-      background: #2859d9;
+      background: #2d5bda;
       color: white;
     }
 
     .secondary {
-      background: #e9eef7;
-      color: #111827;
+      background: #e9eef8;
+      color: #18233d;
     }
 
-    .mode-buttons {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 18px;
+    .field {
+      margin-bottom: 14px;
     }
 
-    .mode-buttons button {
-      flex: 1;
-    }
-
-    .mode-selected {
-      background: #2859d9;
-      color: white;
-    }
-
-    label {
+    .field label {
       display: block;
       font-weight: bold;
-      margin: 14px 0 7px;
+      margin-bottom: 8px;
     }
 
-    input,
-    textarea {
+    .field input,
+    .field textarea,
+    .field select {
       width: 100%;
-      border: 1px solid #cbd5e1;
+      border: 1px solid #c8d2e5;
       border-radius: 9px;
       padding: 12px;
-      font-size: 15px;
-      font-family: inherit;
+      outline: none;
+      background: white;
+    }
+
+    .field input:focus,
+    .field textarea:focus {
+      border-color: #2d5bda;
     }
 
     textarea {
@@ -133,26 +144,31 @@
       resize: vertical;
     }
 
-    .auth-submit {
+    #authSubmit {
       width: 100%;
-      margin-top: 20px;
+      min-height: 48px;
+      border-radius: 9px;
+      margin-top: 5px;
+      font-weight: bold;
     }
 
     #authMessage {
-      margin-top: 15px;
+      min-height: 22px;
+      margin: 14px 0;
       text-align: center;
       font-size: 14px;
-      color: #b42318;
     }
 
     .created-by {
-      text-align: center;
-      color: #718096;
+      margin-top: 30px;
+      color: #7a879f;
       font-size: 13px;
-      margin-top: 28px;
+      text-align: left;
     }
 
-    /* APP */
+    /* =========================
+       APP
+    ========================= */
 
     #app {
       min-height: 100vh;
@@ -160,8 +176,8 @@
 
     .topbar {
       background: white;
-      border-bottom: 1px solid #dce3ef;
-      padding: 15px 25px;
+      border-bottom: 1px solid #dce3f0;
+      padding: 15px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -169,177 +185,195 @@
     }
 
     .brand {
-      font-size: 21px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: bold;
+      font-size: 20px;
+    }
+
+    .small-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 11px;
+      background: #2d5bda;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-weight: bold;
     }
 
-    .user-info {
+    .user-area {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
     #roleBadge {
-      background: #e8efff;
-      color: #2859d9;
-      border-radius: 20px;
-      padding: 6px 12px;
-      font-size: 13px;
+      background: #e9eef8;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
       font-weight: bold;
     }
 
     #logout {
-      background: #eef1f6;
-      color: #182238;
+      background: #e9eef8;
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-weight: bold;
     }
 
-    main {
-      max-width: 1100px;
+    .layout {
+      max-width: 1200px;
       margin: 0 auto;
-      padding: 30px 20px;
+      padding: 25px;
     }
 
     .welcome-card {
       background: white;
-      border-radius: 16px;
-      padding: 25px;
-      margin-bottom: 22px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
-    }
-
-    .welcome-card h2 {
-      margin-top: 0;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-bottom: 22px;
-    }
-
-    .stat {
-      background: white;
       border-radius: 14px;
-      padding: 20px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 18px rgba(30, 50, 90, 0.05);
     }
 
-    .stat-number {
-      font-size: 28px;
-      font-weight: bold;
-      margin-top: 8px;
+    .welcome-card h1 {
+      margin: 0 0 8px;
     }
 
     .dashboard-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 20px;
     }
 
     .card {
       background: white;
-      border-radius: 16px;
+      border-radius: 14px;
       padding: 22px;
-      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 18px rgba(30, 50, 90, 0.05);
     }
 
-    .card h3 {
+    .card h2 {
       margin-top: 0;
     }
 
+    .count {
+      font-size: 30px;
+      font-weight: bold;
+      color: #2d5bda;
+    }
+
     .announcement,
-    .school-link,
-    .user-row {
-      border: 1px solid #e1e6ef;
+    .link-item,
+    .user-item {
+      border: 1px solid #dce3f0;
       border-radius: 10px;
       padding: 13px;
       margin-top: 10px;
     }
 
-    .announcement h4,
-    .school-link h4 {
-      margin: 0 0 7px;
+    .announcement h3 {
+      margin: 0 0 6px;
     }
 
     .announcement p {
       margin: 0;
-      color: #566176;
       white-space: pre-wrap;
     }
 
-    .school-link a {
-      color: #2859d9;
-      word-break: break-all;
+    .link-item a {
+      color: #2d5bda;
+      font-weight: bold;
+      text-decoration: none;
+      word-break: break-word;
     }
 
-    .teacher-section {
-      margin-top: 22px;
+    .teacher-box,
+    .admin-box {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #dce3f0;
     }
 
-    .teacher-form {
-      display: grid;
-      gap: 5px;
+    .staff-form {
+      margin-bottom: 25px;
     }
 
-    .teacher-form button {
-      margin-top: 12px;
+    .staff-form button {
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      margin-top: 5px;
     }
 
-    .user-row {
+    .user-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .user-details {
-      overflow: hidden;
+    .user-item > div {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
 
-    .user-details strong {
-      display: block;
+    .user-item span {
+      font-size: 13px;
+      color: #66738c;
     }
 
-    .user-details small {
-      color: #69758d;
-      word-break: break-all;
+    .user-item small {
+      color: #8490a5;
     }
 
-    .kick-button {
-      background: #ffe5e5;
-      color: #b42318;
-      flex-shrink: 0;
+    .user-item button,
+    .user-item select {
+      padding: 8px 10px;
+      border-radius: 7px;
+      border: 1px solid #ccd5e5;
     }
 
-    .section-title {
-      margin-top: 30px;
-      margin-bottom: 12px;
+    .user-item button {
+      font-weight: bold;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 30px;
+      color: #7a879f;
+      font-size: 13px;
     }
 
     @media (max-width: 750px) {
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
       .dashboard-grid {
         grid-template-columns: 1fr;
       }
 
+      .tabs {
+        grid-template-columns: 1fr;
+      }
+
       .topbar {
-        padding: 14px;
+        flex-direction: column;
+        align-items: flex-start;
       }
 
-      .brand {
-        font-size: 17px;
+      .user-area {
+        width: 100%;
+        justify-content: space-between;
       }
 
-      .user-info {
-        gap: 6px;
+      .layout {
+        padding: 15px;
       }
 
-      #roleBadge {
-        display: none;
+      .auth-card {
+        padding: 24px 20px;
       }
     }
   </style>
@@ -347,12 +381,11 @@
 
 <body>
 
-  <!-- =========================
-       LOGIN / CREATE ACCOUNT
-       ========================= -->
+  <!-- =====================================================
+       LOGIN / SIGNUP
+  ====================================================== -->
 
   <section id="auth">
-
     <div class="auth-card">
 
       <div class="logo">BLP</div>
@@ -363,96 +396,178 @@
         Student dashboard
       </div>
 
-      <!-- Login / Create Account tabs -->
-<div class="tabs">
-  <button id="loginTab" class="primary">Login</button>
-  <button id="signupTab" class="secondary">Create Account</button>
-  <button id="adminLoginTab" class="secondary">Administrator Login</button>
-</div>
 
-      <!-- Student / Teacher -->
-      <div class="mode-buttons">
+      <!-- LOGIN / SIGNUP / ADMIN -->
+      <div class="tabs">
 
-        <button id="studentMode" class="mode-selected">
+        <button
+          id="loginTab"
+          class="primary"
+          type="button"
+        >
+          Login
+        </button>
+
+        <button
+          id="signupTab"
+          class="secondary"
+          type="button"
+        >
+          Create Account
+        </button>
+
+        <button
+          id="adminLoginTab"
+          class="secondary"
+          type="button"
+        >
+          Administrator Login
+        </button>
+
+      </div>
+
+
+      <!-- STUDENT / TEACHER -->
+      <div
+        id="studentTeacherModes"
+        class="mode-tabs"
+      >
+
+        <button
+          id="studentMode"
+          class="primary"
+          type="button"
+        >
           Student
         </button>
 
-        <button id="teacherMode" class="secondary">
+        <button
+          id="teacherMode"
+          class="secondary"
+          type="button"
+        >
           Teacher
         </button>
 
       </div>
 
+
+      <!-- AUTH FORM -->
       <form id="authForm">
 
-        <label for="email">
-          Email
-        </label>
-
-        <input
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          required
+        <!-- Username is mainly used during signup -->
+        <div
+          class="field"
+          id="usernameField"
         >
+          <label for="username">
+            Username
+          </label>
 
-        <label for="password">
-          Password
-        </label>
+          <input
+            id="username"
+            type="text"
+            placeholder="Enter your username"
+            autocomplete="username"
+          >
+        </div>
 
-        <input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          required
-        >
+
+        <div class="field">
+
+          <label for="email">
+            Email
+          </label>
+
+          <input
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            autocomplete="email"
+            required
+          >
+
+        </div>
+
+
+        <div class="field">
+
+          <label for="password">
+            Password
+          </label>
+
+          <input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            autocomplete="current-password"
+            required
+          >
+
+        </div>
+
+
+        <div id="authMessage"></div>
+
 
         <button
           id="authSubmit"
+          class="primary"
           type="submit"
-          class="primary auth-submit"
         >
           Login
         </button>
 
       </form>
 
-      <div id="authMessage"></div>
 
       <div class="created-by">
         Created by Bryden Parrott
       </div>
 
     </div>
-
   </section>
 
 
-  <!-- =========================
+  <!-- =====================================================
        MAIN APPLICATION
-       ========================= -->
+  ====================================================== -->
 
-  <section id="app" class="hidden">
+  <section
+    id="app"
+    style="display: none;"
+  >
 
     <!-- TOP BAR -->
-
     <header class="topbar">
 
       <div class="brand">
-        BLP Student Hub
+
+        <div class="small-logo">
+          BLP
+        </div>
+
+        <span>
+          BLP Student Hub
+        </span>
+
       </div>
 
-      <div class="user-info">
+
+      <div class="user-area">
 
         <span id="who">
           User
         </span>
 
         <span id="roleBadge">
-          Student
+          STUDENT
         </span>
 
-        <button id="logout">
+        <button
+          id="logout"
+          type="button"
+        >
           Logout
         </button>
 
@@ -461,289 +576,294 @@
     </header>
 
 
-    <!-- DASHBOARD -->
+    <main class="layout">
 
-    <main>
+      <!-- WELCOME -->
+      <section class="welcome-card">
 
-      <div class="welcome-card">
-
-        <h2 id="welcome">
+        <h1 id="welcome">
           Welcome!
-        </h2>
+        </h1>
 
         <p id="welcomeText">
-          Welcome to your BLP Student Hub dashboard.
+          Welcome to BLP Student Hub.
         </p>
 
-      </div>
+      </section>
 
 
-      <!-- STATISTICS -->
-
-      <div class="stats">
-
-        <div class="stat">
-
-          <div>
-            Announcements
-          </div>
-
-          <div
-            id="announcementCount"
-            class="stat-number"
-          >
-            0
-          </div>
-
-        </div>
-
-
-        <div class="stat">
-
-          <div>
-            School Links
-          </div>
-
-          <div
-            id="linkCount"
-            class="stat-number"
-          >
-            0
-          </div>
-
-        </div>
-
-
-        <div
-          class="stat"
-          id="userStat"
-        >
-
-          <div>
-            Active Users
-          </div>
-
-          <div
-            id="userCount"
-            class="stat-number"
-          >
-            0
-          </div>
-
-        </div>
-
-      </div>
-
-
-      <!-- STUDENT / GENERAL DASHBOARD -->
-
+      <!-- DASHBOARD -->
       <div class="dashboard-grid">
 
         <!-- ANNOUNCEMENTS -->
+        <section class="card">
 
-        <div class="card">
+          <h2>
+            Announcements
+          </h2>
 
-          <h3>
-            📢 Announcements
-          </h3>
+          <div class="count">
+            <span id="announcementCount">0</span>
+          </div>
 
           <div id="announcementList">
-
             <p>
               No announcements yet.
             </p>
-
           </div>
 
-        </div>
+        </section>
 
 
         <!-- LINKS -->
+        <section class="card">
 
-        <div class="card">
+          <h2>
+            School Links
+          </h2>
 
-          <h3>
-            🔗 School Links
-          </h3>
-
-          <div id="linkList">
-
-            <p>
-              No links yet.
-            </p>
-
+          <div class="count">
+            <span id="linkCount">0</span>
           </div>
 
-        </div>
+          <div id="linkList">
+            <p>
+              No links posted yet.
+            </p>
+          </div>
+
+        </section>
 
       </div>
 
 
-      <!-- =========================
-           TEACHER CONTROLS
-           ========================= -->
+      <!-- =================================================
+           TEACHER DASHBOARD
+      ================================================== -->
 
-      <div
-        id="teacherControls"
-        class="teacher-section hidden"
+      <section
+        id="teacherDashboard"
+        class="card"
+        style="display: none; margin-top: 20px;"
       >
 
-        <h2 class="section-title">
+        <h2>
+          Staff Dashboard
+        </h2>
+
+        <div class="dashboard-grid">
+
+          <div>
+            <strong>
+              Announcements
+            </strong>
+
+            <div
+              id="teacherAnnouncementCount"
+              class="count"
+            >
+              0
+            </div>
+          </div>
+
+          <div>
+            <strong>
+              Links
+            </strong>
+
+            <div
+              id="teacherLinkCount"
+              class="count"
+            >
+              0
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           TEACHER CONTROLS
+      ================================================== -->
+
+      <section
+        id="teacherControls"
+        class="card teacher-box"
+        style="display: none;"
+      >
+
+        <h2>
           Teacher Controls
         </h2>
 
 
-        <div class="dashboard-grid">
+        <!-- POST ANNOUNCEMENT -->
+        <div class="staff-form">
 
+          <h3>
+            Post Announcement
+          </h3>
 
-          <!-- POST ANNOUNCEMENT -->
+          <div class="field">
 
-          <div class="card">
+            <label for="announcementTitle">
+              Title
+            </label>
 
-            <h3>
-              📢 Post Announcement
-            </h3>
-
-            <form id="postAnnouncement">
-
-              <label for="announcementTitle">
-                Title
-              </label>
-
-              <input
-                id="announcementTitle"
-                type="text"
-                placeholder="Announcement title"
-                required
-              >
-
-              <label for="announcementText">
-                Announcement
-              </label>
-
-              <textarea
-                id="announcementText"
-                placeholder="Write your announcement..."
-                required
-              ></textarea>
-
-              <button
-                type="submit"
-                class="primary"
-              >
-                Post Announcement
-              </button>
-
-            </form>
+            <input
+              id="announcementTitle"
+              type="text"
+              placeholder="Announcement title"
+            >
 
           </div>
 
 
-          <!-- POST LINK -->
+          <div class="field">
 
-          <div class="card">
+            <label for="announcementText">
+              Message
+            </label>
 
-            <h3>
-              🔗 Post School Link
-            </h3>
-
-            <form id="postLink">
-
-              <label for="linkTitle">
-                Link Name
-              </label>
-
-              <input
-                id="linkTitle"
-                type="text"
-                placeholder="Example: School Website"
-                required
-              >
-
-              <label for="linkUrl">
-                URL
-              </label>
-
-              <input
-                id="linkUrl"
-                type="url"
-                placeholder="https://example.com"
-                required
-              >
-
-              <button
-                type="submit"
-                class="primary"
-              >
-                Post Link
-              </button>
-
-            </form>
+            <textarea
+              id="announcementText"
+              placeholder="Write your announcement..."
+            ></textarea>
 
           </div>
+
+
+          <button
+            id="postAnnouncement"
+            class="primary"
+            type="button"
+          >
+            Post Announcement
+          </button>
 
         </div>
 
 
-        <!-- TEACHER COUNTS -->
+        <!-- POST LINK -->
+        <div class="staff-form">
 
-        <div class="stats">
+          <h3>
+            Post School Link
+          </h3>
 
-          <div class="stat">
+          <div class="field">
 
-            <div>
-              Total Announcements
-            </div>
+            <label for="linkTitle">
+              Link Name
+            </label>
 
-            <div
-              id="teacherAnnouncementCount"
-              class="stat-number"
+            <input
+              id="linkTitle"
+              type="text"
+              placeholder="Example: School Website"
             >
-              0
-            </div>
 
           </div>
 
-          <div class="stat">
 
-            <div>
-              Total Links
-            </div>
+          <div class="field">
 
-            <div
-              id="teacherLinkCount"
-              class="stat-number"
+            <label for="linkUrl">
+              URL
+            </label>
+
+            <input
+              id="linkUrl"
+              type="text"
+              placeholder="https://example.com"
             >
-              0
-            </div>
 
           </div>
+
+
+          <button
+            id="postLink"
+            class="primary"
+            type="button"
+          >
+            Post Link
+          </button>
 
         </div>
 
 
         <!-- USER MANAGEMENT -->
-
-        <div class="card">
+        <div>
 
           <h3>
-            👥 User Management
+            Users
           </h3>
 
           <p>
-            Teachers can deactivate student accounts from here.
+            Total users:
+            <strong id="userCount">0</strong>
           </p>
 
           <div id="userList">
-
             <p>
-              Loading users...
+              No users found.
             </p>
-
           </div>
 
         </div>
 
+      </section>
+
+
+      <!-- =================================================
+           ADMIN DASHBOARD
+      ================================================== -->
+
+      <section
+        id="adminDashboard"
+        class="card admin-box"
+        style="display: none;"
+      >
+
+        <h2>
+          Administrator Dashboard
+        </h2>
+
+        <p>
+          Administrator accounts are managed through
+          Supabase. Administrators can manage users,
+          roles, announcements, and links.
+        </p>
+
+      </section>
+
+
+      <!-- =================================================
+           ADMIN CONTROLS
+      ================================================== -->
+
+      <section
+        id="adminControls"
+        class="card admin-box"
+        style="display: none;"
+      >
+
+        <h2>
+          Administrator Controls
+        </h2>
+
+        <p>
+          Use the Users section above to manage
+          student, teacher, and administrator accounts.
+        </p>
+
+      </section>
+
+
+      <div class="footer">
+        BLP Student Hub • Created by Bryden Parrott
       </div>
 
     </main>
@@ -751,10 +871,13 @@
   </section>
 
 
-  <!-- Supabase must load BEFORE app.js -->
+  <!-- =====================================================
+       SCRIPTS
+       IMPORTANT: SUPABASE FIRST, APP.JS SECOND
+       ===================================================== -->
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
 
 </body>
 </html>
