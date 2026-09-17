@@ -7,204 +7,176 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="auth" class="auth-page">
-    <div class="auth-card">
-      <div class="brand-mark">BLP</div>
-      <h1>BLP Student Hub</h1>
-      <p class="subtitle">Your student dashboard</p>
+  <div class="page-shell">
 
-      <div class="tabs">
-        <button id="loginTab" class="primary" type="button">Login</button>
-        <button id="signupTab" class="secondary" type="button">Create Account</button>
-        <button id="adminLoginTab" class="secondary" type="button">Administrator Login</button>
-      </div>
+    <!-- AUTH -->
+    <section id="auth" class="auth-page">
+      <div class="auth-card">
+        <img src="blp-logo.png" alt="BLP Student Hub Logo" class="auth-logo">
 
-      <div id="studentMode" class="role-choice primary" role="button" tabindex="0">Student Login</div>
-      <div id="teacherMode" class="role-choice secondary" role="button" tabindex="0">Teacher Login</div>
+        <h1>BLP Student Hub</h1>
+        <p class="subtitle">Student learning and school hub</p>
 
-      <form id="authForm">
-        <div id="usernameField" class="field hidden">
-          <label for="username">Username</label>
-          <input id="username" type="text" autocomplete="username" placeholder="Choose a username">
+        <div class="auth-tabs">
+          <button id="loginTab" class="primary" type="button">Login</button>
+          <button id="signupTab" class="secondary" type="button">Sign Up</button>
+          <button id="adminLoginTab" class="secondary" type="button">Admin</button>
         </div>
 
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required>
+        <div class="role-tabs">
+          <button id="studentMode" class="primary" type="button">Student</button>
+          <button id="teacherMode" class="secondary" type="button">Teacher</button>
         </div>
 
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" type="password" autocomplete="current-password" placeholder="Your password" required>
+        <form id="authForm">
+          <div id="usernameField" class="field hidden-field">
+            <label for="username">Username</label>
+            <input id="username" type="text" autocomplete="username" placeholder="Choose a username">
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" autocomplete="email" placeholder="Enter your email">
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" placeholder="Enter your password">
+          </div>
+
+          <button id="authSubmit" class="primary full-button" type="submit">Login</button>
+        </form>
+
+        <p id="authMessage" class="message"></p>
+      </div>
+    </section>
+
+    <!-- APP -->
+    <section id="app" class="app-page" style="display:none;">
+      <header class="topbar">
+        <div class="brand">
+          <img src="blp-logo.png" alt="BLP Student Hub Logo" class="header-logo">
+          <div>
+            <div class="brand-title">BLP Student Hub</div>
+            <div class="brand-subtitle">Created by Bryden Parrott</div>
+          </div>
         </div>
 
-        <button id="authSubmit" class="submit-button" type="submit">Login</button>
-      </form>
+        <div class="account-area">
+          <span id="who"></span>
+          <span id="roleBadge" class="role-badge">Student</span>
+          <button id="logout" class="secondary" type="button">Logout</button>
+        </div>
+      </header>
 
-      <p id="authMessage" class="auth-message" aria-live="polite"></p>
-    </div>
-  </div>
-
-  <div id="app" class="app-shell" style="display:none;">
-    <header class="topbar">
-      <div>
-        <div class="brand-title">BLP Student Hub</div>
-        <div class="brand-subtitle">Student Dashboard</div>
-      </div>
-      <div class="account-area">
-        <span id="who">User</span>
-        <span id="roleBadge" class="role-badge">Student</span>
-        <button id="logout" class="secondary" type="button">Logout</button>
-      </div>
-    </header>
-
-    <div class="layout">
-      <main class="main-content">
-        <section class="welcome-card card">
-          <p class="eyebrow">DASHBOARD</p>
+      <main class="dashboard">
+        <section class="welcome-card">
           <h1 id="welcome">Welcome!</h1>
           <p id="welcomeText">Welcome to your BLP Student Hub dashboard.</p>
         </section>
 
-        <section class="stats-grid">
-          <div class="stat-card card">
-            <span class="stat-label">Announcements</span>
-            <strong id="announcementCount">0</strong>
-          </div>
-          <div class="stat-card card">
-            <span class="stat-label">School Links</span>
-            <strong id="linkCount">0</strong>
-          </div>
-          <div class="stat-card card">
-            <span class="stat-label">Online</span>
-            <strong id="onlineTotal">0</strong>
-          </div>
-        </section>
+        <div class="content-grid">
+          <div class="main-column">
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Announcements</h2>
+                  <span class="count"><span id="announcementCount">0</span> posts</span>
+                </div>
+              </div>
+              <div id="announcementList" class="item-list">
+                <p>No announcements yet.</p>
+              </div>
+            </section>
 
-        <section class="card content-card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">UPDATES</p>
-              <h2>Announcements</h2>
-            </div>
+            <section class="panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>School Links</h2>
+                  <span class="count"><span id="linkCount">0</span> links</span>
+                </div>
+              </div>
+              <div id="linkList" class="item-list">
+                <p>No links posted yet.</p>
+              </div>
+            </section>
           </div>
-          <div id="announcementList" class="content-list">
-            <p>No announcements yet.</p>
-          </div>
-        </section>
 
-        <section class="card content-card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">RESOURCES</p>
-              <h2>School Links</h2>
-            </div>
-          </div>
-          <div id="linkList" class="content-list">
-            <p>No links posted yet.</p>
-          </div>
-        </section>
+          <aside class="sidebar">
+            <section class="panel online-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Online Members</h2>
+                  <span class="count"><span id="userCount">0</span> members</span>
+                </div>
+                <span class="live-dot"></span>
+              </div>
 
-        <section id="teacherDashboard" class="card staff-card" style="display:none;">
-          <div class="section-heading">
+              <div class="member-group">
+                <h3>ADMINS</h3>
+                <div class="member-placeholder">Online members appear here</div>
+              </div>
+              <div class="member-group">
+                <h3>TEACHERS</h3>
+                <div class="member-placeholder">Online members appear here</div>
+              </div>
+              <div class="member-group">
+                <h3>STUDENTS</h3>
+                <div class="member-placeholder">Online members appear here</div>
+              </div>
+            </section>
+
+            <section class="panel users-panel">
+              <div class="panel-heading">
+                <div>
+                  <h2>Users</h2>
+                  <span class="count">Teacher/Admin controls</span>
+                </div>
+              </div>
+              <div id="userList" class="user-list"></div>
+            </section>
+          </aside>
+        </div>
+
+        <!-- TEACHER / ADMIN -->
+        <section id="teacherDashboard" class="panel staff-panel" style="display:none;">
+          <div class="panel-heading">
             <div>
-              <p class="eyebrow">STAFF</p>
               <h2>Teacher Dashboard</h2>
-            </div>
-          </div>
-          <div class="mini-stats">
-            <div><span>Announcements</span><strong id="teacherAnnouncementCount">0</strong></div>
-            <div><span>Links</span><strong id="teacherLinkCount">0</strong></div>
-            <div><span>Users</span><strong id="userCount">0</strong></div>
-          </div>
-        </section>
-
-        <section id="teacherControls" class="card staff-card" style="display:none;">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">STAFF TOOLS</p>
-              <h2>Post to Student Hub</h2>
+              <span class="count"><span id="teacherAnnouncementCount">0</span> announcements · <span id="teacherLinkCount">0</span> links</span>
             </div>
           </div>
 
-          <div class="form-grid">
-            <div>
-              <label for="announcementTitle">Announcement Title</label>
-              <input id="announcementTitle" type="text" placeholder="Important update">
+          <div id="teacherControls" class="controls-grid" style="display:none;">
+            <div class="control-card">
+              <h3>Post Announcement</h3>
+              <input id="announcementTitle" type="text" placeholder="Announcement title">
+              <textarea id="announcementText" rows="4" placeholder="Write your announcement"></textarea>
+              <button id="postAnnouncement" class="primary" type="button">Post Announcement</button>
             </div>
-            <div class="full-width">
-              <label for="announcementText">Announcement</label>
-              <textarea id="announcementText" rows="4" placeholder="Write your announcement..."></textarea>
-            </div>
-            <button id="postAnnouncement" class="primary action-button" type="button">Post Announcement</button>
-          </div>
 
-          <div class="divider"></div>
-
-          <div class="form-grid">
-            <div>
-              <label for="linkTitle">Link Name</label>
-              <input id="linkTitle" type="text" placeholder="School Website">
-            </div>
-            <div>
-              <label for="linkUrl">URL</label>
+            <div class="control-card">
+              <h3>Add School Link</h3>
+              <input id="linkTitle" type="text" placeholder="Link name">
               <input id="linkUrl" type="url" placeholder="https://example.com">
+              <button id="postLink" class="primary" type="button">Add Link</button>
             </div>
-            <button id="postLink" class="primary action-button" type="button">Post Link</button>
           </div>
         </section>
 
-        <section id="adminDashboard" class="card staff-card" style="display:none;">
-          <div class="section-heading">
+        <section id="adminDashboard" class="panel staff-panel" style="display:none;">
+          <div class="panel-heading">
             <div>
-              <p class="eyebrow">ADMIN</p>
               <h2>Administrator Dashboard</h2>
+              <span class="count">Full profile management</span>
             </div>
           </div>
-          <p>Administrators have full dashboard management permissions.</p>
-        </section>
-
-        <section id="adminControls" class="card staff-card" style="display:none;">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">ADMIN TOOLS</p>
-              <h2>Manage Users</h2>
-            </div>
-          </div>
-          <div id="userList" class="user-list">
-            <p>No users found.</p>
+          <div id="adminControls" class="admin-note" style="display:none;">
+            Use the Users section to change roles and activate or deactivate accounts.
           </div>
         </section>
-
-        <footer>Created by Bryden Parrott</footer>
       </main>
-
-      <aside class="online-sidebar card">
-        <div class="online-header">
-          <div>
-            <p class="eyebrow">COMMUNITY</p>
-            <h2>Online Members</h2>
-          </div>
-          <span id="onlineTotalHeader" class="online-total-pill">0</span>
-        </div>
-        <p class="online-subtitle">People currently on BLP Student Hub</p>
-
-        <div class="online-group">
-          <div class="online-group-title"><span>ADMINS</span><span id="onlineAdminCount">0</span></div>
-          <div id="onlineAdmins" class="online-list"></div>
-        </div>
-
-        <div class="online-group">
-          <div class="online-group-title"><span>TEACHERS</span><span id="onlineTeacherCount">0</span></div>
-          <div id="onlineTeachers" class="online-list"></div>
-        </div>
-
-        <div class="online-group">
-          <div class="online-group-title"><span>STUDENTS</span><span id="onlineStudentCount">0</span></div>
-          <div id="onlineStudents" class="online-list"></div>
-        </div>
-      </aside>
-    </div>
+    </section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
