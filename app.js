@@ -87,7 +87,6 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
       hide(studentButton);
       hide(teacherButton);
       hide(usernameField);
-      usernameField?.classList.add("hidden-field");
 
       if (submitButton) {
         submitButton.textContent = "Administrator Login";
@@ -109,7 +108,6 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
       show(studentButton);
       hide(teacherButton);
 
-      usernameField?.classList.remove("hidden-field");
       show(usernameField);
 
       if (studentButton) {
@@ -135,7 +133,6 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
     show(teacherButton);
 
     hide(usernameField);
-    usernameField?.classList.add("hidden-field");
 
     if (loginRole === "student") {
       if (studentButton) studentButton.className = "primary";
@@ -207,7 +204,6 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
 
       const email = $("email")?.value.trim();
       const password = $("password")?.value;
-      const username = $("username")?.value.trim();
 
       if (!email || !password) {
         message("Please enter your email and password.", true);
@@ -219,11 +215,6 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
       // ========================================================
 
       if (authMode === "signup") {
-        if (!username) {
-          message("Please enter a username.", true);
-          return;
-        }
-
         if (password.length < 6) {
           message(
             "Your password must be at least 6 characters.",
@@ -238,11 +229,6 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
           await supabaseClient.auth.signUp({
             email: email,
             password: password,
-            options: {
-              data: {
-                username: username
-              }
-            }
           });
 
         if (error) {
@@ -256,14 +242,10 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
         if (data?.user) {
           currentUser = data.user;
 
-          // Try to update the profile username.
-          // The database trigger should already create the profile.
+          // The database trigger creates the profile automatically.
           await supabaseClient
             .from("profiles")
-            .update({
-              username: username,
-              email: data.user.email || email
-            })
+            .update({ email: data.user.email || email })
             .eq("id", data.user.id);
 
           await loadCurrentProfile();
@@ -446,18 +428,18 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
     hide($("auth"));
     show($("app"));
 
-    const username =
-      currentProfile?.username ||
+    const displayEmail =
       currentUser?.email ||
+      currentProfile?.email ||
       "User";
 
     if ($("who")) {
-      $("who").textContent = username;
+      $("who").textContent = displayEmail;
     }
 
     if ($("welcome")) {
       $("welcome").textContent =
-        `Welcome, ${username}!`;
+        `Welcome, ${displayEmail}!`;
     }
 
     if ($("welcomeText")) {

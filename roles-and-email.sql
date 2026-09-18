@@ -23,7 +23,7 @@ begin
   insert into public.profiles (id, username, email, role, active)
   values (
     new.id,
-    coalesce(new.raw_user_meta_data->>'username', split_part(coalesce(new.email, ''), '@', 1)),
+    split_part(coalesce(new.email, ''), '@', 1),
     new.email,
     'student',
     true
@@ -57,6 +57,6 @@ create trigger on_auth_user_created
 -- update public.profiles set role = 'student', active = true where lower(email) = lower('person@example.com');
 
 -- Check everyone's current role:
-select email, username, role, active
+select email, role, active
 from public.profiles
 order by role, email;
