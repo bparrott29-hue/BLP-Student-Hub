@@ -87,6 +87,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
       hide(studentButton);
       hide(teacherButton);
       hide(usernameField);
+      usernameField?.classList.add("hidden-field");
 
       if (submitButton) {
         submitButton.textContent = "Administrator Login";
@@ -108,6 +109,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
       show(studentButton);
       hide(teacherButton);
 
+      usernameField?.classList.remove("hidden-field");
       show(usernameField);
 
       if (studentButton) {
@@ -133,6 +135,7 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_4SZZm0RQZ48mYYPdEUacyQ_hLZu5FNt
     show(teacherButton);
 
     hide(usernameField);
+    usernameField?.classList.add("hidden-field");
 
     if (loginRole === "student") {
       if (studentButton) studentButton.className = "primary";
